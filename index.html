@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3585CE">
+  <meta name="description" content="구구단 무한 연습: 0단부터 10단까지, 12까지 곱하며 1억 문제에 도전해요!">
+  <title>구구단 무한 연습</title>
+  <style>
+    :root { --forest:#3585ce; --forest-dark:#174a80; --grass:#367ec4; --grass-light:#75b9eb; --dirt:#e2b965; --paper:#fff3d5; --ink:#29384a; --edge:#174a80; --cream:#ffffff; }
+    * { box-sizing:border-box; }
+    html { min-height:100%; background:#ddf2ff; }
+    body { margin:0; min-height:100dvh; font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; color:#174a80; background:linear-gradient(180deg,#bfe6ff 0%,#ddf2ff 48%,#eaf8ff 100%); -webkit-tap-highlight-color:transparent; }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:linear-gradient(90deg,transparent 94%,#75b9eb 94%),linear-gradient(transparent 94%,#75b9eb 94%); background-size:38px 38px; }
+    button { font:inherit; cursor:pointer; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+    button:focus-visible { outline:4px solid #f1a53b; outline-offset:3px; }
+    .shell { position:relative; width:min(100%,520px); margin:auto; min-height:100dvh; display:flex; flex-direction:column; justify-content:center; padding:clamp(14px,3vh,28px) 18px max(22px,env(safe-area-inset-bottom)); gap:16px; }
+    .header { display:flex; align-items:center; justify-content:center; gap:12px; text-align:center; }
+    h1 { margin:0; font-size:clamp(24px,5.7vw,34px); font-weight:1000; letter-spacing:-1.4px; text-shadow:2px 2px 0 #c4e5fb; }
+    .counter { background:#ffffff; border:4px solid #75b9eb; box-shadow:5px 5px 0 #9bc8e8,inset 0 0 0 3px #edf8ff; padding:15px 12px 16px; text-align:center; }
+    .counter-label { color:#275b92; font-size:clamp(30px,5.8vw,34px); font-weight:800; letter-spacing:.06em; }
+    .counter-number { display:block; margin-top:3px; font-size:clamp(35px,9vw,52px); font-weight:1000; line-height:1.25; color:#174a80; font-variant-numeric:tabular-nums; letter-spacing:-1.5px; text-shadow:2px 2px 0 #d7eafa; }
+    .problem-panel { background:var(--paper); border:5px solid #e2b965; box-shadow:5px 5px 0 #a9cce3,inset 0 0 0 4px #fffaf0; color:var(--ink); padding:18px 16px 20px; text-align:center; }
+    .problem-caption { font-size:clamp(28px,5.5vw,34px); font-weight:900; color:#8a561a; }
+    .problem { margin:5px 0 15px; font-size:clamp(39px,11vw,61px); line-height:1.35; font-weight:1000; letter-spacing:-1.8px; white-space:nowrap; }
+    .answer { min-height:66px; width:min(100%,290px); margin:0 auto; display:flex; align-items:center; justify-content:center; background:#ffffff; border:4px solid #e2b965; box-shadow:inset 4px 4px 0 #fff3d5; font-size:38px; font-weight:1000; color:#29384a; font-variant-numeric:tabular-nums; }
+    .answer.empty { color:#b4a58d; }
+    .feedback { height:28px; margin-top:9px; font-size:17px; font-weight:1000; color:#a33129; display:flex; align-items:center; justify-content:center; }
+    .keypad { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; }
+    .key { min-height:clamp(59px,9vh,75px); background:#367ec4; color:#ffffff; border:3px solid #174a80; border-bottom:7px solid #174a80; border-radius:2px; font-size:clamp(25px,5vw,32px); font-weight:1000; text-shadow:1px 2px 0 #174a80; transition:filter .08s; }
+    .key:active:not(:disabled),.submit:active:not(:disabled) { transform:translateY(3px); border-bottom-width:4px; filter:brightness(1.08); }
+    .key.utility { background:#5a9bd2; border-color:#174a80; text-shadow:1px 2px 0 #174a80; font-size:24px; }
+    .submit { width:100%; min-height:65px; background:#f1a53b; color:#342313; border:3px solid #ae681a; border-bottom:8px solid #ae681a; border-radius:2px; font-size:25px; font-weight:1000; text-shadow:none; }
+    .submit:disabled,.key:disabled { opacity:.58; cursor:default; }
+    .submit:disabled { background:#c9b18e; }
+    .foot { text-align:center; color:#275b92; font-size:clamp(24px,4.7vw,28px); font-weight:850; opacity:1; line-height:1.35; }
+    .finish { display:none; flex:1; align-items:center; justify-content:center; text-align:center; }
+    .finish-box { width:100%; background:var(--paper); color:var(--ink); border:5px solid #e2b965; box-shadow:6px 6px 0 #a9cce3; padding:34px 18px; }
+    .finish-icon { font-size:68px; margin-bottom:8px; }
+    .backspace-icon { width:34px; height:34px; display:block; margin:auto; fill:none; stroke:currentColor; stroke-width:2.8; stroke-linecap:round; stroke-linejoin:round; }
+    .finish h2 { font-size:clamp(26px,7vw,38px); margin:0 0 12px; }
+    .finish p { font-size:18px; line-height:1.7; font-weight:750; margin:0; }
+    body.completed .practice { display:none; }
+    body.completed .finish { display:flex; }
+    @media (max-height:750px) { .shell { justify-content:flex-start; gap:11px; padding-top:12px; } .counter { padding:9px; } .problem-panel { padding:10px 12px 12px; } .problem { margin:1px 0 9px; } .answer { min-height:51px; } .feedback { height:22px; margin-top:4px; } .key { min-height:53px; } .submit { min-height:54px; } }
+    @media (min-width:700px) and (orientation:landscape) { .shell { width:min(95%,850px); } .practice { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,1fr); gap:15px; align-items:stretch; } .counter { grid-column:1 / -1; } .problem-panel { display:flex; flex-direction:column; justify-content:center; } .controls { display:flex; flex-direction:column; gap:12px; } .key { min-height:55px; } .submit { min-height:58px; } }
+    @media (max-height:650px) and (orientation:landscape) { .counter-label { font-size:30px; } .problem-caption { font-size:28px; } .foot { font-size:24px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="header"><h1>구구단 무한 연습</h1></header>
+    <section class="practice" aria-label="구구단 문제 풀이">
+      <div class="counter"><div class="counter-label">남은 문제</div><output id="remaining" class="counter-number" aria-label="남은 문제 수">100,000,000</output></div>
+      <div class="problem-panel">
+        <div class="problem-caption">문제를 풀어보세요!</div>
+        <div id="problem" class="problem" aria-label="곱셈 문제">준비 중…</div>
+        <div id="answer" class="answer empty" aria-label="입력한 답">?</div>
+        <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+      </div>
+      <div class="controls">
+        <div class="keypad" aria-label="숫자 입력 버튼">
+          <button class="key" type="button" data-digit="1">1</button><button class="key" type="button" data-digit="2">2</button><button class="key" type="button" data-digit="3">3</button>
+          <button class="key" type="button" data-digit="4">4</button><button class="key" type="button" data-digit="5">5</button><button class="key" type="button" data-digit="6">6</button>
+          <button class="key" type="button" data-digit="7">7</button><button class="key" type="button" data-digit="8">8</button><button class="key" type="button" data-digit="9">9</button>
+          <button class="key utility" type="button" id="clear" aria-label="전체 지우기">C</button><button class="key" type="button" data-digit="0">0</button><button class="key utility" type="button" id="backspace" aria-label="한 자리 지우기"><svg class="backspace-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M13 7H27V25H13L4 16Z"/><path d="M16 12L23 20M23 12L16 20"/></svg></button>
+        </div>
+        <button class="submit" id="submit" type="button" disabled>제출하기</button>
+      </div>
+    </section>
+    <section class="finish" aria-label="모든 문제 완료"><div class="finish-box"><div class="finish-icon" aria-hidden="true">🏆</div><h2>축하합니다!</h2><p>1억 문제를 모두 맞혔어요!<br>정말 대단한 구구단 마스터예요!</p></div></section>
+    <footer class="foot">정답을 맞힐 때마다 남은 문제가 하나씩 줄어요!</footer>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const TOTAL = 100_000_000;
+      const STORAGE_KEY = 'gugudan-infinite-remaining-v1';
+      const $ = (id) => document.getElementById(id);
+      const remainingEl = $('remaining');
+      const problemEl = $('problem');
+      const answerEl = $('answer');
+      const feedbackEl = $('feedback');
+      const submitEl = $('submit');
+      const controls = [...document.querySelectorAll('.key'), submitEl];
+      let remaining = TOTAL;
+      let currentAnswer = 0;
+      let input = '';
+      let waiting = false;
+
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved !== null && /^\d+$/.test(saved)) {
+          const parsed = Number(saved);
+          if (Number.isSafeInteger(parsed) && parsed >= 0 && parsed <= TOTAL) remaining = parsed;
+        }
+      } catch (err) { /* 저장소 사용이 차단된 환경에서는 현재 탭에서만 동작 */ }
+
+      function save() {
+        try { localStorage.setItem(STORAGE_KEY, String(remaining)); }
+        catch (err) { /* 브라우저 저장소 제한 시에도 학습은 계속 가능 */ }
+      }
+      function renderCounter() { remainingEl.textContent = remaining.toLocaleString('ko-KR'); }
+      function renderInput() {
+        answerEl.textContent = input || '?';
+        answerEl.classList.toggle('empty', !input);
+        submitEl.disabled = waiting || input.length === 0;
+      }
+      function newProblem() {
+        if (remaining === 0) { document.body.classList.add('completed'); return; }
+        const a = Math.floor(Math.random() * 11);
+        const b = Math.floor(Math.random() * 12) + 1;
+        currentAnswer = a * b;
+        input = '';
+        waiting = false;
+        problemEl.textContent = `${a} × ${b} = ?`;
+        feedbackEl.textContent = '';
+        controls.forEach(button => { if (button !== submitEl) button.disabled = false; });
+        renderInput();
+      }
+      function appendDigit(digit) {
+        if (waiting || input.length >= 3) return;
+        input += digit;
+        renderInput();
+      }
+      function clear() { if (!waiting) { input = ''; renderInput(); } }
+      function backspace() { if (!waiting) { input = input.slice(0, -1); renderInput(); } }
+      function submit() {
+        if (waiting || !input) return;
+        waiting = true;
+        controls.forEach(button => { button.disabled = true; });
+        if (Number(input) === currentAnswer) {
+          remaining -= 1;
+          save();
+          renderCounter();
+          newProblem();
+        } else {
+          feedbackEl.textContent = `정답은 ${currentAnswer}입니다!`;
+          window.setTimeout(newProblem, 2000);
+        }
+      }
+      document.querySelectorAll('[data-digit]').forEach(button => {
+        button.addEventListener('click', () => appendDigit(button.dataset.digit));
+      });
+      $('clear').addEventListener('click', clear);
+      $('backspace').addEventListener('click', backspace);
+      submitEl.addEventListener('click', submit);
+      document.addEventListener('keydown', (event) => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+        if (/^[0-9]$/.test(event.key)) appendDigit(event.key);
+        else if (event.key === 'Backspace') { event.preventDefault(); backspace(); }
+        else if (event.key === 'Escape' || event.key === 'Delete') clear();
+        else if (event.key === 'Enter') { event.preventDefault(); submit(); }
+      });
+      renderCounter();
+      newProblem();
+    })();
+  </script>
+</body>
+</html>
